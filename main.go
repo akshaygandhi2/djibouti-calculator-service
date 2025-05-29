@@ -5,6 +5,7 @@ import (
 	"buildingcost/controller"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 )
@@ -20,6 +21,10 @@ func main() {
 	api.HandleFunc("/{code}/estimate_calculate", controller.CalculateCost).Methods("POST")
 	api.HandleFunc("/{code}/demand", controller.GeneratetDemands).Methods("POST")
 
-	log.Println("Server listening on http://localhost:8085")
-	log.Fatal(http.ListenAndServe(":8085", r))
+	port := os.Getenv("SERVER_PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Printf(" Server started at :%s\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }
