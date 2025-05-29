@@ -113,8 +113,8 @@ func createDemandsForPco(code string, request map[string]interface{}) (map[strin
 			}
 		}
 	}
-	host := config.GetEnv("DEMAND_SERVICE_HOST")
-	endpoint := config.GetEnv("DEMAND_SERVICE_ENDPOINT")
+	host := config.GetEnv("EGOV_MDMS_HOST")
+	endpoint := config.GetEnv("EGOV_MDMS_SEARCH_ENDPOINT")
 
 	if host == "" || endpoint == "" {
 		return nil, errors.New("host or endpoint not set in environment variables")
