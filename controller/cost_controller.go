@@ -3,6 +3,7 @@ package controller
 import (
 	"buildingcost/service"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -30,6 +31,8 @@ func CalculateCost(w http.ResponseWriter, r *http.Request) {
 func GeneratetDemands(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	code := vars["code"]
+
+	log.Println("Calling demand service with code : ", code)
 
 	var requestBody map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {

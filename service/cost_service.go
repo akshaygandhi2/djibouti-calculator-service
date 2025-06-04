@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -100,19 +101,19 @@ func createDemandsForPco(code string, request map[string]interface{}) (map[strin
 
 	var taxAmount float64
 	var businessService string
-	if apps, ok := request["Application"].([]interface{}); ok && len(apps) > 0 {
 
-		if app, ok := apps[0].(map[string]interface{}); ok {
-			businessService = app["businessService"].(string)
-			if additionalDetails, ok := app["additionalDetails"].(map[string]interface{}); ok {
-				if costEstimation, ok := additionalDetails["costEstimation"].(map[string]interface{}); ok {
-					if val, ok := costEstimation["totalTaxWithServiceCharge"].(float64); ok {
-						taxAmount = val
-					}
+	if app, ok := request["Application"].(map[string]interface{}); ok {
+		businessService = app["businessService"].(string)
+		if additionalDetails, ok := app["additionalDetails"].(map[string]interface{}); ok {
+			if costEstimation, ok := additionalDetails["costEstimation"].(map[string]interface{}); ok {
+				if val, ok := costEstimation["totalTaxWithServiceCharge"].(float64); ok {
+					taxAmount = val
 				}
 			}
 		}
 	}
+
+	log.Println("Calling MDMS......")
 	host := config.GetEnv("EGOV_MDMS_HOST")
 	endpoint := config.GetEnv("EGOV_MDMS_SEARCH_ENDPOINT")
 
@@ -148,6 +149,9 @@ func createDemandsForPco(code string, request map[string]interface{}) (map[strin
 	demandDetails := []map[string]interface{}{}
 
 	mdmsRes := apiResponse["MdmsRes"].(map[string]interface{})
+
+	log.Println("MDMS response : ", mdmsRes)
+
 	studio := mdmsRes["Studio"].(map[string]interface{})
 	serviceConfigs := studio["ServiceConfiguration"].([]interface{})
 
@@ -182,6 +186,8 @@ func createDemandsForPco(code string, request map[string]interface{}) (map[strin
 
 		"demandDetails": demandDetails,
 	}
+
+	log.Println("Demand details : ", finalResponse)
 
 	return finalResponse, nil
 }
