@@ -1,33 +1,32 @@
-# Stage 1: Build
-FROM golang:1.24.2 AS builder
+# Stage 1: Build the Go binary
+FROM golang:1.24-alpine AS build
 
+ARG WORK_DIR
 WORKDIR /app
 
-# Download dependencies
-COPY go.mod go.sum ./
+# Install git (sometimes required by Go modules)
+RUN apk add --no-cache git
+
+# Copy go.mod and go.sum, then download dependencies
+COPY ${WORK_DIR}/go.mod ${WORK_DIR}/go.sum ./
 RUN go mod download
 
 # Copy source code
-COPY . .
+COPY ${WORK_DIR}/ ./
 
-# Build the binary statically
-RUN CGO_ENABLED=0 GOOS=linux go build -o app main.go
+# Build the Go binary
+RUN go build -o service-binary
 
-# Stage 2: Run
-FROM alpine:latest
+# Stage 2: Create a minimal runtime image
+FROM alpine:3.18
 
-# Install necessary certs
-RUN apk --no-cache add ca-certificates
-
-WORKDIR /root/
+WORKDIR /opt/egov
 
 # Copy the compiled binary and .env file
-COPY --from=builder /app/app .
-COPY --from=builder /app/.env .env
+COPY --from=build /app/service-binary .
+COPY start.sh .
 
 # Ensure binary is executable
-RUN chmod +x ./app
+RUN chmod +x ./start.sh
 
-EXPOSE 8080
-
-CMD ["./app"]
+CMD ["./start.sh"]
